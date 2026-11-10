@@ -14,6 +14,8 @@ use Sabre\VObject\Reader;
 
 /** @template-implements IEventListener<CalendarObjectCreatedEvent|CalendarObjectUpdatedEvent> */
 class TaskDateListener implements IEventListener {
+    private const AUTO_DUE_PROPERTY = 'X-TASKDATE-AUTO-DUE';
+
     public function __construct(
         private CalDavBackend $backend,
         private LoggerInterface $logger,
@@ -31,21 +33,48 @@ class TaskDateListener implements IEventListener {
 
             $vobj = Reader::read($object['calendardata']);
             $todo = $vobj->VTODO ?? null;
-            if ($todo === null || isset($todo->DUE) || !isset($todo->SUMMARY)) {
-                return; // keine Aufgabe, schon Fälligkeit gesetzt, oder kein Titel
+            if ($todo === null || !isset($todo->SUMMARY)) {
+                return;
+            }
+
+            $managed = isset($todo->{self::AUTO_DUE_PROPERTY});
+            $oldAutoDue = $managed ? (string)$todo->{self::AUTO_DUE_PROPERTY} : null;
+            $currentDue = isset($todo->DUE) ? (string)$todo->DUE : null;
+            // Never replace a due date that was set or changed manually.
+            if ($currentDue !== null && (!$managed || $currentDue !== $oldAutoDue)) {
+                return;
             }
 
             $parsed = DateParser::parse((string)$todo->SUMMARY, new \DateTimeImmutable('now'));
             if ($parsed === null) {
+                // Remove only dates previously created by TaskDate.
+                if ($managed && $currentDue !== null) {
+                    unset($todo->DUE);
+                    unset($todo->{self::AUTO_DUE_PROPERTY});
+                    $this->backend->updateCalendarObject((int)$calendar['id'], $object['uri'], $vobj->serialize());
+                }
                 return;
             }
             [$date, $hasTime] = $parsed;
 
-            if ($hasTime) {
-                $todo->add('DUE', $date->format('Ymd\THis'));
-            } else {
-                $todo->add('DUE', $date->format('Ymd'), ['VALUE' => 'DATE']);
+            $due = $hasTime ? $date->format('Ymd\THis') : $date->format('Ymd');
+            if ($currentDue === $due && $managed) {
+                return; // also prevents the update event from writing again
             }
+
+            if (isset($todo->DUE)) {
+                unset($todo->DUE);
+            }
+
+            if ($hasTime) {
+                $todo->add('DUE', $due);
+            } else {
+                $todo->add('DUE', $due, ['VALUE' => 'DATE']);
+            }
+            if (isset($todo->{self::AUTO_DUE_PROPERTY})) {
+                unset($todo->{self::AUTO_DUE_PROPERTY});
+            }
+            $todo->add(self::AUTO_DUE_PROPERTY, $due);
 
             $this->backend->updateCalendarObject(
                 (int)$calendar['id'],
