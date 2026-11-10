@@ -5,12 +5,12 @@
     <name>Task Date</name>
     <summary>Setzt das Fälligkeitsdatum von Aufgaben automatisch aus dem Titel</summary>
     <description>Erkennt Datumsangaben im Aufgabentitel (z. B. "Zahnarzt 12.11.", "Bericht morgen 14 Uhr", "Steuer am Freitag") und trägt sie als Fälligkeitsdatum ein. Aufgaben mit Fälligkeit erscheinen auch im Kalender.</description>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
     <licence>agpl</licence>
     <author>Du</author>
     <namespace>TaskDate</namespace>
     <category>organization</category>
     <dependencies>
-        <nextcloud min-version="28" max-version="33"/>
+        <nextcloud min-version="33" max-version="35"/>
     </dependencies>
 </info>
