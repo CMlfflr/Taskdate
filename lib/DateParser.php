@@ -10,7 +10,7 @@ use DateTimeImmutable;
  * Unterstützt: 12.11.2026, 12.11.26, 12.11., 2026-11-12,
  * heute, morgen, übermorgen, (nächsten) Montag … Sonntag,
  * Kompakt: 20261101
- * Uhrzeit: 14:30, 14 Uhr, 14.30 Uhr, 1400
+ * Uhrzeit: 14:30, 14.30, 14 Uhr, 14.30 Uhr, 1400
  */
 class DateParser {
     private const WEEKDAYS = [
@@ -74,7 +74,7 @@ class DateParser {
         }
 
         $hasTime = false;
-        if (preg_match('/(?<!\d)(\d{1,2}):(\d{2})(?!\d)/', $rest, $t)
+        if (preg_match('/(?<![\d.])(\d{1,2})[.:](\d{2})(?![\d.])/', $rest, $t)
             || preg_match('/(?<!\d)(\d{1,2})(?:[.:](\d{2}))?\s*Uhr\b/iu', $rest, $t)
             // 4-stellig (z. B. 1400); nur volle/viertel Stunden, damit Jahre wie 2026 nicht passen
             || preg_match('/(?<![\d.:])([01]\d|2[0-3])(00|15|30|45)(?![\d.:])/', $rest, $t)) {
