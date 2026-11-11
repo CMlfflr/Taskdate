@@ -4,8 +4,8 @@ declare(strict_types=1);
 namespace OCA\TaskDate\Listener;
 
 use OCA\DAV\CalDAV\CalDavBackend;
-use OCA\DAV\Events\CalendarObjectCreatedEvent;
-use OCA\DAV\Events\CalendarObjectUpdatedEvent;
+use OCP\Calendar\Events\CalendarObjectCreatedEvent;
+use OCP\Calendar\Events\CalendarObjectUpdatedEvent;
 use OCA\TaskDate\DateParser;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
