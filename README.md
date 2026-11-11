@@ -6,15 +6,15 @@ Nextcloud-App zur automatischen Erkennung von Datumsangaben im Titel einer Aufga
 
 Die Dateien aus diesem Repository in `custom_apps/taskdate` der Nextcloud-Installation ablegen und anschließend als Administrator aktivieren, beispielsweise mit `php occ app:enable taskdate`.
 
-**Testversion 0.2.1:** Die App deklariert Nextcloud **33–35**. Die Nextcloud-35-Kompatibilität ist noch **nicht durch einen echten CalDAV-Integrationstest bestätigt**. Vor der produktiven Nutzung auf einer Testinstanz ausprobieren.
+**Testversion 0.2.2:** Die App deklariert Nextcloud **33–35**. Die Nextcloud-35-Kompatibilität ist noch **nicht durch einen echten CalDAV-Integrationstest bestätigt**. Vor der produktiven Nutzung auf einer Testinstanz ausprobieren.
 
 ## Erkennung
 
-- Daten: `12.11.2026`, `12.11.26`, `12.11.`, `2026-11-12`, `20261112`
+- Daten: `12.11.2026`, `12.11.26`, `12.11.`, `2026-11-12`, `20261112`, `261112` (JJMMTT)
 - Relative Angaben: `heute`, `morgen`, `übermorgen`, deutsche Wochentage
 - Uhrzeiten: `14:30`, `14.30`, `14 Uhr`, `14.30 Uhr`, vierstellige Schreibweisen wie `1400` (Minuten 00, 15, 30 oder 45)
 
-Ohne erkannte Uhrzeit wird ein ganztägiges `DUE`-Datum gesetzt. Bereits vorhandene manuelle Fälligkeiten bleiben unverändert. Automatisch erzeugte Fälligkeiten werden über `X-TASKDATE-AUTO-DUE` gekennzeichnet und bei Titeländerungen aktualisiert oder bei Entfernen des Datums gelöscht. Wird eine automatisch gesetzte Fälligkeit manuell geändert, fasst TaskDate sie nicht mehr an. Es wird **kein zusätzlicher Kalendereintrag** erstellt: Die bestehende Aufgabe erscheint bei aktivierter Aufgabenanzeige im Kalender.
+Ohne erkannte Uhrzeit wird ein ganztägiges `DUE`-Datum gesetzt. Nach der automatischen Übernahme wird die erkannte Uhrzeit aus dem Titel entfernt (`Zahnarzt 261112 1530` → `Zahnarzt 261112`), die Fälligkeit bleibt bei 15:30 Uhr. Bei späteren Titeländerungen ohne neue Uhrzeit bleibt die automatisch erkannte Uhrzeit erhalten. Bereits vorhandene manuelle Fälligkeiten bleiben unverändert. Automatisch erzeugte Fälligkeiten werden über `X-TASKDATE-AUTO-DUE` gekennzeichnet und bei Titeländerungen aktualisiert oder bei Entfernen des Datums gelöscht. Wird eine automatisch gesetzte Fälligkeit manuell geändert, fasst TaskDate sie nicht mehr an. Es wird **kein zusätzlicher Kalendereintrag** erstellt: Die bestehende Aufgabe erscheint bei aktivierter Aufgabenanzeige im Kalender.
 
 Version 0.2.1 korrigiert die Ereignisregistrierung für Nextcloud 35 (`OCP\\Calendar\\Events` statt `OCA\\DAV\\Events`).
 
