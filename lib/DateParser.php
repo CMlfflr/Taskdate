@@ -9,7 +9,7 @@ use DateTimeImmutable;
  * Erkennt Datumsangaben in Titeln.
  * Unterstützt: 12.11.2026, 12.11.26, 12.11., 2026-11-12,
  * heute, morgen, übermorgen, (nächsten) Montag … Sonntag,
- * Kompakt: 20261101
+ * Kompakt: 20261101, 261112 (JJMMTT)
  * Uhrzeit: 14:30, 14.30, 14 Uhr, 14.30 Uhr, 1400
  */
 class DateParser {
@@ -51,6 +51,14 @@ class DateParser {
             }
         }
 
+        if ($date === null && preg_match('/(?<!\d)(\d{2})(\d{2})(\d{2})(?!\d)/', $text, $m)) {
+            $year = 2000 + (int)$m[1];
+            if (checkdate((int)$m[2], (int)$m[3], $year)) {
+                $date = $today->setDate($year, (int)$m[2], (int)$m[3]);
+                $rest = str_replace($m[0], ' ', $text);
+            }
+        }
+
         if ($date === null) {
             $lower = mb_strtolower($text);
             if (preg_match('/\b(übermorgen|uebermorgen)\b/u', $lower)) {
@@ -87,5 +95,31 @@ class DateParser {
         }
 
         return [$date, $hasTime];
+    }
+
+    /** Entfernt nur die erkannte Uhrzeit; das Datum und der übrige Titel bleiben erhalten. */
+    public static function withoutTime(string $title, DateTimeImmutable $date): string {
+        $hour = (int)$date->format('G');
+        $minute = (int)$date->format('i');
+        $patterns = [
+            '/(?<!\d)(\d{1,2})(?:[.:](\d{2}))?\s*Uhr\b/iu',
+            '/(?<![\d.])(\d{1,2})[.:](\d{2})(?![\d.])/',
+            '/(?<![\d.:])([01]\d|2[0-3])(00|15|30|45)(?![\d.:])/',
+        ];
+        foreach ($patterns as $pattern) {
+            if (!preg_match_all($pattern, $title, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+                continue;
+            }
+            foreach ($matches as $match) {
+                $h = (int)$match[1][0];
+                $m = isset($match[2]) && $match[2][0] !== '' ? (int)$match[2][0] : 0;
+                if ($h !== $hour || $m !== $minute) {
+                    continue;
+                }
+                $clean = substr_replace($title, '', $match[0][1], strlen($match[0][0]));
+                return trim(preg_replace('/[ \t]{2,}/u', ' ', $clean) ?? $clean);
+            }
+        }
+        return $title;
     }
 }
