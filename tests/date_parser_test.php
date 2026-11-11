@@ -8,6 +8,7 @@ use OCA\TaskDate\DateParser;
 $now = new DateTimeImmutable('2026-11-10 09:00:00', new DateTimeZone('Europe/Berlin'));
 $cases = [
     'Zahnarzt 20261112 1400' => ['2026-11-12 14:00', true],
+    'Zahnarzt 261112 1530' => ['2026-11-12 15:30', true],
     'Zahnarzt 20261112 1430' => ['2026-11-12 14:30', true],
     'Zahnarzt 12.11.2026 14:30' => ['2026-11-12 14:30', true],
     'Zahnarzt 12.11.26 14.30 Uhr' => ['2026-11-12 14:30', true],
@@ -31,6 +32,11 @@ foreach ($cases as $title => $expected) {
     if ($actual === null || $actual[0]->format('Y-m-d H:i') !== $expected[0] || $actual[1] !== $expected[1]) {
         throw new RuntimeException("Wrong result for: $title; got " . var_export($actual, true));
     }
+}
+
+$cleaned = DateParser::withoutTime('Zahnarzt 261112 1530', new DateTimeImmutable('2026-11-12 15:30'));
+if ($cleaned !== 'Zahnarzt 261112') {
+    throw new RuntimeException('Time removal failed: ' . $cleaned);
 }
 
 echo 'DateParser: ' . count($cases) . " cases passed\n";
