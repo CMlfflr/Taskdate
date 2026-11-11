@@ -57,8 +57,17 @@ class TaskDateListener implements IEventListener {
             }
             [$date, $hasTime] = $parsed;
 
+            // The listener runs a second time after it removes the time from SUMMARY.
+            // Retain the previously extracted time while TaskDate still manages DUE.
+            if (!$hasTime && $managed && $oldAutoDue !== null && strlen($oldAutoDue) === 15) {
+                $date = $date->setTime((int)substr($oldAutoDue, 9, 2), (int)substr($oldAutoDue, 11, 2));
+                $hasTime = true;
+            }
+
             $due = $hasTime ? $date->format('Ymd\THis') : $date->format('Ymd');
-            if ($currentDue === $due && $managed) {
+            $title = (string)$todo->SUMMARY;
+            $cleanTitle = $hasTime ? DateParser::withoutTime($title, $date) : $title;
+            if ($currentDue === $due && $managed && $cleanTitle === $title) {
                 return; // also prevents the update event from writing again
             }
 
@@ -75,6 +84,9 @@ class TaskDateListener implements IEventListener {
                 unset($todo->{self::AUTO_DUE_PROPERTY});
             }
             $todo->add(self::AUTO_DUE_PROPERTY, $due);
+            if ($cleanTitle !== $title) {
+                $todo->SUMMARY = $cleanTitle;
+            }
 
             $this->backend->updateCalendarObject(
                 (int)$calendar['id'],
