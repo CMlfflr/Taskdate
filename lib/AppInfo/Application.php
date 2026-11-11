@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace OCA\TaskDate\AppInfo;
 
-use OCA\DAV\Events\CalendarObjectCreatedEvent;
-use OCA\DAV\Events\CalendarObjectUpdatedEvent;
+use OCP\Calendar\Events\CalendarObjectCreatedEvent;
+use OCP\Calendar\Events\CalendarObjectUpdatedEvent;
 use OCA\TaskDate\Listener\TaskDateListener;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
